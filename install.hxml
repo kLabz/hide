@@ -1,0 +1,17 @@
+# last update: 2020-04-06
+-lib castle:git:git@github.com:ncannasse/castle.git#257744d
+-lib hscript:git:git@github.com:HaxeFoundation/hscript.git#4f25ab1
+-lib hxbit:git:git@github.com:HeapsIO/hxbit.git#8b9337e
+-lib domkit:git:git@github.com:HeapsIO/domkit.git#0609156
+-lib hx3compat:git:git@github.com:HaxeFoundation/hx3compat.git#91edf63
+-lib heaps:git:git@github.com:HeapsIO/heaps.git#921896a
+-lib hxnodejs:12.1.0
+-lib node-webkit:1.0.7
+
+# -lib castle:git:git@github.com:ncannasse/castle.git#b55cf8c
+# -lib domkit:git:git@github.com:HeapsIO/domkit.git#0834169
+# -lib heaps:git:git@github.com:HeapsIO/heaps.git#877d8ea
+# -lib hscript:git:git@github.com:HaxeFoundation/hscript.git#ce9ce67
+# -lib hx3compat:git:git@github.com:HaxeFoundation/hx3compat.git#91edf63
+# -lib hxbit:git:git@github.com:HeapsIO/hxbit.git#d6a8fd7
+# -lib hxnodejs:git:git@github.com:HaxeFoundation/hxnodejs.git#af30e67
