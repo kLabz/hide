@@ -3,7 +3,9 @@
 -lib hxbit
 -lib hscript
 -lib castle
--lib hx3compat
+-lib jQueryExtern
+-D jquery_ver=110803
+-D jquery.global
 -lib domkit
 -D js-classic
 -D js-unflatten
