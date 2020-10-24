@@ -280,7 +280,10 @@ class Cell extends Component {
 				editor.isUniqueID(sheet,obj,id) ? v : '<span class="error">#DUP($v)</span>';
 			}
 		case TString if( c.kind == Script ):  // wrap content in div because td cannot have max-height
-			v == "" ? " " : '<div class="script">${colorizeScript(c,v, sheet.idCol == null ? null : Reflect.field(obj, sheet.idCol.name))}</div>';
+			// v == "" ? " " : '<div class="script">${colorizeScript(c,v, sheet.idCol == null ? null : Reflect.field(obj, sheet.idCol.name))}</div>';
+			// TODO: only if inside properties
+			v == "" ? "&nbsp;" : '<span class="minor">[script]</span>';
+			// v == "" ? "&nbsp;" : colorizeScript(c,v, sheet.idCol == null ? null : Reflect.field(obj, sheet.idCol.name));
 		case TString, TLayer(_):
 			v == "" ? " " : StringTools.htmlEscape(v).split("\n").join("<br/>");
 		case TRef(sname):
