@@ -136,6 +136,17 @@ class Ide {
 			mouseX = e.x;
 			mouseY = e.y;
 		});
+		window.window.document.addEventListener("keyup", function(e) {
+			if (e.keyCode == 18) {
+				if (saveMenu == null) {
+					saveMenu = window.menu;
+					window.menu = null;
+				} else {
+					window.menu = saveMenu;
+					saveMenu = null;
+				}
+			}
+		});
 		window.on('maximize', function() { maximized = true; onWindowChange(); });
 		window.on('restore', function() { maximized = false; onWindowChange(); });
 		window.on('move', function() haxe.Timer.delay(onWindowChange,100));
@@ -409,6 +420,7 @@ class Ide {
 		} else {
 			window.menu = saveMenu;
 			window.leaveFullscreen();
+			saveMenu = null;
 		}
 	}
 
@@ -1012,7 +1024,7 @@ class Ide {
 			config.global.save();
 		});
 
-		window.menu = new hide.ui.Menu(menu).root;
+		saveMenu = new hide.ui.Menu(menu).root;
 	}
 
 	public function openFile( file : String, ?onCreate ) {
