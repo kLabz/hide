@@ -184,7 +184,9 @@ class Cell extends Component {
 				editor.isUniqueID(sheet,obj,id) ? v : '<span class="error">#DUP($v)</span>';
 			}
 		case TString if( c.kind == Script ):
-			v == "" ? "&nbsp;" : colorizeScript(c,v, sheet.idCol == null ? null : Reflect.field(obj, sheet.idCol.name));
+			// TODO: only if inside properties
+			v == "" ? "&nbsp;" : '<span class="dimmed">[script]</span>';
+			// v == "" ? "&nbsp;" : colorizeScript(c,v, sheet.idCol == null ? null : Reflect.field(obj, sheet.idCol.name));
 		case TString, TLayer(_):
 			v == "" ? "&nbsp;" : StringTools.htmlEscape(v).split("\n").join("<br/>");
 		case TRef(sname):
