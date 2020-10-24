@@ -163,7 +163,8 @@ class ScriptChecker {
 				case TInst(c,_):
 					var cc = c;
 					while( true ) {
-						for( f in cc.fields ) if( f.t.match(TFun(_)) ) f.isPublic = true; // allow access to private methods
+						for( f in cc.fields ) f.isPublic = true; // allow access to private fields
+						// for( f in cc.fields ) if( f.t.match(TFun(_)) ) f.isPublic = true; // allow access to private methods
 						if( cc.superClass == null ) break;
 						cc = switch( cc.superClass ) {
 						case TInst(c,_): c;
