@@ -1,4 +1,5 @@
 package hide.comp.cdb;
+import cdb.Data.CustomType;
 import hxd.Key in K;
 
 class Cell extends Component {
@@ -399,6 +400,44 @@ class Cell extends Component {
 		switch( column.type ) {
 		case TString if( column.kind == Script ):
 			open();
+
+		case TCustom(_ => editor.base.getCustomType(_) => t) if (isBasicEnum(t)):
+			element.empty();
+			element.addClass("edit");
+			var s = new Element("<select>");
+			var elts = [for( i in 0...t.cases.length) {id : ""+i, ico : null, text : t.cases[i].name}];
+			if (column.opt) elts.unshift({id : "-1", ico : null, text : "--- None ---"});
+			element.append(s);
+
+			var props : Dynamic = { data : elts };
+			(untyped s.select2)(props);
+			(untyped s.select2)("val", currentValue == null ? "" : currentValue);
+			(untyped s.select2)("open");
+			var sel2 = s.data("select2");
+
+			s.change(function(e) {
+				var val = Std.parseInt(s.val());
+				setValue(val < 0 ? null : [val]);
+				sel2.close();
+				closeEdit();
+			});
+			s.keydown(function(e) {
+				switch( e.keyCode ) {
+				case K.LEFT, K.RIGHT:
+					s.blur();
+					return;
+				case K.TAB:
+					s.blur();
+					editor.cursor.move(e.shiftKey? -1:1, 0, false, false);
+					var c = editor.cursor.getCell();
+					if( c != this ) c.edit();
+					e.preventDefault();
+				default:
+				}
+				e.stopPropagation();
+			});
+			s.on("select2:close", function(_) closeEdit());
+
 		case TInt, TFloat, TString, TId, TCustom(_), TDynamic:
 			var str = value == null ? "" : editor.base.valToString(column.type, value);
 			var textSpan = element.wrapInner("<span>").find("span");
@@ -741,6 +780,11 @@ class Cell extends Component {
 		default:
 			setValue(newValue);
 		}
+	}
+
+	function isBasicEnum(t:CustomType):Bool {
+		for (c in t.cases) if (c.args.length > 0) return false;
+		return true;
 	}
 
 	public function setValue( value : Dynamic ) {
