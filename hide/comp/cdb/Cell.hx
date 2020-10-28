@@ -402,41 +402,16 @@ class Cell extends Component {
 			open();
 
 		case TCustom(_ => editor.base.getCustomType(_) => t) if (isBasicEnum(t)):
-			element.empty();
-			element.addClass("edit");
-			var s = new Element("<select>");
 			var elts = [for( i in 0...t.cases.length) {id : ""+i, ico : null, text : t.cases[i].name}];
 			if (column.opt) elts.unshift({id : "-1", ico : null, text : "--- None ---"});
-			element.append(s);
 
-			var props : Dynamic = { data : elts };
-			(untyped s.select2)(props);
-			(untyped s.select2)("val", currentValue == null ? "" : currentValue);
-			(untyped s.select2)("open");
-			var sel2 = s.data("select2");
-
-			s.change(function(e) {
-				var val = Std.parseInt(s.val());
-				setValue(val < 0 ? null : [val]);
-				sel2.close();
-				closeEdit();
-			});
-			s.keydown(function(e) {
-				switch( e.keyCode ) {
-				case K.LEFT, K.RIGHT:
-					s.blur();
-					return;
-				case K.TAB:
-					s.blur();
-					editor.cursor.move(e.shiftKey? -1:1, 0, false, false);
-					var c = editor.cursor.getCell();
-					if( c != this ) c.edit();
-					e.preventDefault();
-				default:
+			openSelect(
+				elts,
+				function(val) {
+					var val = Std.parseInt(val);
+					setValue(val < 0 ? null : [val]);
 				}
-				e.stopPropagation();
-			});
-			s.on("select2:close", function(_) closeEdit());
+			);
 
 		case TInt, TFloat, TString, TId, TCustom(_), TDynamic:
 			var str = value == null ? "" : editor.base.valToString(column.type, value);
@@ -506,10 +481,7 @@ class Cell extends Component {
 		case TRef(name):
 			var sdat = editor.base.getSheet(name);
 			if( sdat == null ) return;
-			element.empty();
-			element.addClass("edit");
 
-			var s = new Element("<select>");
 			var isLocal = sdat.idCol.scope != null;
 			var elts;
 			if( isLocal ) {
@@ -520,71 +492,38 @@ class Cell extends Component {
 				elts = [for( d in sdat.all ) { id : d.id, ico : d.ico, text : d.disp }];
 			if( column.opt || currentValue == null || currentValue == "" )
 				elts.unshift( { id : "~", ico : null, text : "--- None ---" } );
-			element.append(s);
 
-			var props : Dynamic = { data : elts };
-			if( sdat.props.displayIcon != null ) {
-				function buildElement(i) {
-					var text = StringTools.htmlEscape(i.text);
-					return new Element("<div>"+(i.ico == null ? "<div style='display:inline-block;width:16px'/>" : tileHtml(i.ico,true)) + " " + text+"</div>");
+			openSelect(
+				elts,
+				function(val) {
+					if( val == "~" ) val = null;
+					setValue(val);
+				},
+				function(props) {
+					if( sdat.props.displayIcon != null ) {
+						function buildElement(i) {
+							var text = StringTools.htmlEscape(i.text);
+							return new Element("<div>"+(i.ico == null ? "<div style='display:inline-block;width:16px'/>" : tileHtml(i.ico,true)) + " " + text+"</div>");
+						}
+						props.templateResult = props.templateSelection = buildElement;
+					}
+
+					return props;
 				}
-				props.templateResult = props.templateSelection = buildElement;
-			}
-			(untyped s.select2)(props);
-			(untyped s.select2)("val", currentValue == null ? "" : currentValue);
-			(untyped s.select2)("open");
+			);
 
-			var sel2 = s.data("select2");
-			sel2.$dropdown.find("input").on("keydown", function(e) {
-				e.stopPropagation();
-			});
-
-			s.change(function(e) {
-				var val = s.val();
-				if( val == "~" ) val = null;
-				setValue(val);
-				sel2.close();
-				closeEdit();
-			});
-			s.on("select2:close", function(_) closeEdit());
 		case TEnum(values):
-			element.empty();
-			element.addClass("edit");
-			var s = new Element("<select>");
 			var elts = [for( i in 0...values.length ){ id : ""+i, ico : null, text : values[i] }];
-			if( column.opt )
-				elts.unshift( { id : "-1", ico : null, text : "--- None ---" } );
-			element.append(s);
+			if( column.opt ) elts.unshift( { id : "-1", ico : null, text : "--- None ---" } );
 
-			var props : Dynamic = { data : elts };
-			(untyped s.select2)(props);
-			(untyped s.select2)("val", currentValue == null ? "" : currentValue);
-			(untyped s.select2)("open");
-			var sel2 = s.data("select2");
-
-			s.change(function(e) {
-				var val = Std.parseInt(s.val());
-				if( val < 0 ) val = null;
-				setValue(val);
-				sel2.close();
-				closeEdit();
-			});
-			s.keydown(function(e) {
-				switch( e.keyCode ) {
-				case K.LEFT, K.RIGHT:
-					s.blur();
-					return;
-				case K.TAB:
-					s.blur();
-					editor.cursor.move(e.shiftKey? -1:1, 0, false, false);
-					var c = editor.cursor.getCell();
-					if( c != this ) c.edit();
-					e.preventDefault();
-				default:
+			openSelect(
+				elts,
+				function(val) {
+					var val = Std.parseInt(val);
+					setValue(val < 0 ? null : val);
 				}
-				e.stopPropagation();
-			});
-			s.on("select2:close", function(_) closeEdit());
+			);
+
 		case TColor:
 			var modal = new Element("<div>").addClass("hide-modal").appendTo(element);
 			var color = new ColorPicker(element);
@@ -785,6 +724,38 @@ class Cell extends Component {
 	function isBasicEnum(t:CustomType):Bool {
 		for (c in t.cases) if (c.args.length > 0) return false;
 		return true;
+	}
+
+	function openSelect(
+		elts,
+		onChange:String->Void,
+		?alterProps:Dynamic->Dynamic
+	):Void {
+		element.empty();
+		element.addClass("edit");
+
+		var props:Dynamic = {data: elts};
+		if (alterProps != null) props = alterProps(props);
+
+		var s = new Element("<select>");
+		element.append(s);
+
+		(untyped s.select2)(props);
+		(untyped s.select2)("val", currentValue == null ? "" : currentValue);
+		(untyped s.select2)("open");
+
+		var sel2 = s.data("select2");
+		sel2.$dropdown.find("input").on("keydown", function(e) {
+			e.stopPropagation();
+		});
+
+		s.change(function(e) {
+			onChange(s.val());
+			sel2.close();
+			closeEdit();
+		});
+
+		s.on("select2:close", function(_) closeEdit());
 	}
 
 	public function setValue( value : Dynamic ) {
