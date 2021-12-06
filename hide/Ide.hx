@@ -319,7 +319,12 @@ class Ide {
 
 		var config : golden.Config = {
 			content: state.state.content,
-			settings: {reorderEnabled : false, showPopoutIcon : false, showMaximiseIcon : false}
+			settings: {
+				// Default to false
+				reorderEnabled : config.user.get('layout.reorderEnabled') == true,
+				showPopoutIcon : config.user.get('layout.showPopoutIcon') == true,
+				showMaximiseIcon : config.user.get('layout.showMaximiseIcon') == true
+			}
 		};
 		var comps = new Map();
 		for( vcl in hide.ui.View.viewClasses )
